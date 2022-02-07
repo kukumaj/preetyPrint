@@ -1,18 +1,23 @@
 package com.epam.rd.autocode.bstprettyprint;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PrintableTreeImpl implements PrintableTree {
     public static void main(String[] args) {
         PrintableTree printableTree = new PrintableTreeImpl();
-        printableTree.add(123);
-        printableTree.add(11);
-        printableTree.add(200);
-        printableTree.add(1);
-        printableTree.add(100);
-        printableTree.add(150);
-        printableTree.add(2000);
+        Arrays.asList(
+                52,
+                415,
+                951,
+                97,
+                489,
+                656,
+                559,
+                387,
+                733,
+                765).forEach(printableTree::add);
 
         System.out.println(printableTree.prettyPrint());
 
@@ -56,69 +61,84 @@ public class PrintableTreeImpl implements PrintableTree {
         row.insert(y, string);
     }
 
-    @Override
-    public String prettyPrint() {
-        List<StringBuffer> canvas = new ArrayList<>();
-        String firstElementString = String.valueOf(root.value);
-        int firstElementX = countNodeElements(root.top);
-        print(canvas, firstElementX, 0, firstElementString);
+    private static void printNodeToCanvas(List<StringBuffer> canvas, int startX, int startY, Node node) {
+        String currentElementString = String.valueOf(node.value);
+        print(canvas, startX, startY, currentElementString);
 
-        int connectorY = firstElementString.length();
+        int connectorY = startY + currentElementString.length();
 
         {
             String connector = null;
 
-            if (root.top == null && root.down != null) {
+            if (node.top == null && node.down != null) {
                 connector = "┐";
             }
-            if (root.top != null && root.down == null) {
+            if (node.top != null && node.down == null) {
                 connector = "┘";
             }
-            if (root.top != null && root.down != null) {
+            if (node.top != null && node.down != null) {
                 connector = "┤";
             }
-            if (root.top == null && root.down == null) {
-                return null;
+            if (node.top == null && node.down == null) {
+                return;
             }
 
-
-            print(canvas, firstElementX, connectorY, connector);
+            print(canvas, startX, connectorY, connector);
         }
 
-        if (root.top != null) {
+        if (node.top != null) {
             int pipeCount;
-            if (root.top.down == null) {
+            if (node.top.down == null) {
                 pipeCount = 0;
             } else {
-                pipeCount = countNodeElements(root.top.down);
+                pipeCount = countNodeElements(node.top.down);
             }
-            int currentPipeX = firstElementX - 1;
+            int currentPipeX = startX - 1;
             for (int i = 0; i < pipeCount; i++) {
                 print(canvas, currentPipeX, connectorY, "│");
                 currentPipeX--;
             }
             print(canvas, currentPipeX, connectorY, "┌");
+            printNodeToCanvas(canvas, currentPipeX, connectorY + 1, node.top);
         }
-        if (root.down != null) {
+        if (node.down != null) {
             int pipeCount;
-            if (root.down.top == null) {
+            if (node.down.top == null) {
                 pipeCount = 0;
             } else {
-                pipeCount = countNodeElements(root.down.top);
+                pipeCount = countNodeElements(node.down.top);
             }
-            int currentPipeX = firstElementX +1;
+            int currentPipeX = startX + 1;
             for (int i = 0; i < pipeCount; i++) {
                 print(canvas, currentPipeX, connectorY, "│");
                 currentPipeX++;
             }
             print(canvas, currentPipeX, connectorY, "└");
+            printNodeToCanvas(canvas, currentPipeX, connectorY + 1, node.down);
         }
-
-        canvas.forEach(System.out::println);
-        return null;
     }
 
-    private int countNodeElements(Node node) {
+    @Override
+    public String prettyPrint() {
+        List<StringBuffer> canvas = new ArrayList<>();
+        int firstElementX;
+        if (root.top != null) {
+            firstElementX = countNodeElements(root.top);
+        } else {
+            firstElementX = 0;
+        }
+        printNodeToCanvas(canvas, firstElementX, 0, root);
+
+        StringBuilder result = new StringBuilder();
+        for (StringBuffer row : canvas) {
+            result.append(row).append("\n");
+        }
+
+        // canvas.stream().map(StringBuffer::toString).reduce("", (acc, s) -> acc + s + '\n');   the same as 4 lines above
+        return result.toString();
+    }
+
+    private static int countNodeElements(Node node) {
         int sum = 1;
 
         if (node.top != null) {
