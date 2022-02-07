@@ -7,17 +7,7 @@ import java.util.List;
 public class PrintableTreeImpl implements PrintableTree {
     public static void main(String[] args) {
         PrintableTree printableTree = new PrintableTreeImpl();
-        Arrays.asList(
-                52,
-                415,
-                951,
-                97,
-                489,
-                656,
-                559,
-                387,
-                733,
-                765).forEach(printableTree::add);
+        Arrays.asList(52, 415, 951, 97, 489, 656, 559, 387, 733, 765).forEach(printableTree::add);
 
         System.out.println(printableTree.prettyPrint());
 
